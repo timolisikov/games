@@ -12,6 +12,7 @@
             justify-content: center;
             height: 100vh;
             background-color: black;
+            touch-action: none;
         }
         .game-container {
             display: flex;
@@ -25,26 +26,6 @@
             background-color: #111;
             border: 2px solid white;
             margin-bottom: 20px;
-        }
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(3, 60px);
-            gap: 10px;
-            justify-content: center;
-        }
-        .button {
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            text-align: center;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .button:active {
-            background-color: #0056b3;
         }
         #start-button {
             margin-top: 20px;
@@ -67,13 +48,6 @@
         <canvas id="canvas" width="400" height="400"></canvas>
         <button id="start-button" onclick="startGame()">Start</button>
     </div>
-    
-    <div class="controls">
-        <button class="button" onclick="changeDirection('UP')">▲</button>
-        <button class="button" onclick="changeDirection('LEFT')">◄</button>
-        <button class="button" onclick="changeDirection('RIGHT')">►</button>
-        <button class="button" onclick="changeDirection('DOWN')">▼</button>
-    </div>
 
 <script>
 let canvas = document.getElementById('canvas');
@@ -86,6 +60,8 @@ let food = { x: 5, y: 5 };
 let direction = 'LEFT';
 let gameRunning = false;
 let gameInterval;
+let touchStartX = 0;
+let touchStartY = 0;
 
 function placeFood() {
     food.x = Math.floor(Math.random() * cols);
@@ -131,12 +107,25 @@ document.addEventListener('keydown', (e) => {
     if (e.keyCode === 40 && direction !== 'UP') direction = 'DOWN';
 });
 
-function changeDirection(newDirection) {
-    if (newDirection === 'LEFT' && direction !== 'RIGHT') direction = 'LEFT';
-    if (newDirection === 'UP' && direction !== 'DOWN') direction = 'UP';
-    if (newDirection === 'RIGHT' && direction !== 'LEFT') direction = 'RIGHT';
-    if (newDirection === 'DOWN' && direction !== 'UP') direction = 'DOWN';
-}
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+});
+
+document.addEventListener('touchmove', (e) => {
+    if (!gameRunning) return;
+    let deltaX = e.touches[0].clientX - touchStartX;
+    let deltaY = e.touches[0].clientY - touchStartY;
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 0 && direction !== 'LEFT') direction = 'RIGHT';
+        else if (deltaX < 0 && direction !== 'RIGHT') direction = 'LEFT';
+    } else {
+        if (deltaY > 0 && direction !== 'UP') direction = 'DOWN';
+        else if (deltaY < 0 && direction !== 'DOWN') direction = 'UP';
+    }
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+});
 
 function startGame() {
     if (!gameRunning) {
