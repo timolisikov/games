@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - 4 Gewinnt</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 80px);
+            grid-template-rows: repeat(6, 80px);
+            gap: 5px;
+        }
+        .cell {
+            width: 80px;
+            height: 80px;
+            background-color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        .cell.taken {
+            cursor: not-allowed;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe - 4 in einer Reihe</h1>
+    <div class="board" id="board"></div>
+    <p id="message">Dein Zug!</p>
+    <button onclick="resetGame()">Neues Spiel</button>
+
+<script>
+    const rows = 6;
+    const cols = 7;
+    let board = Array(rows * cols).fill('');
+    let currentPlayer = 'X';
+    let gameActive = true;
+
+    function renderBoard() {
+        const boardElement = document.getElementById('board');
+        boardElement.innerHTML = '';
+        board.forEach((cell, index) => {
+            const cellElement = document.createElement('div');
+            cellElement.classList.add('cell');
+            if (cell !== '') cellElement.classList.add('taken');
+            cellElement.textContent = cell;
+            cellElement.addEventListener('click', () => makeMove(index));
+            boardElement.appendChild(cellElement);
+        });
+    }
+
+    function makeMove(index) {
+        if (!gameActive || board[index] !== '') return;
+        board[index] = 'X';
+        renderBoard();
+        checkWinner();
+        if (gameActive) {
+            setTimeout(aiMove, 500);
+        }
+    }
+
+    function aiMove() {
+        let emptyCells = board.map((cell, index) => (cell === '' ? index : null)).filter(index => index !== null);
+        if (emptyCells.length === 0) return;
+        
+        let randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        board[randomIndex] = 'O';
+        renderBoard();
+        checkWinner();
+    }
+
+    function checkWinner() {
+        function checkLine(a, b, c, d) {
+            return board[a] && board[a] === board[b] && board[a] === board[c] && board[a] === board[d];
+        }
+        
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols - 3; c++) {
+                let i = r * cols + c;
+                if (checkLine(i, i + 1, i + 2, i + 3)) win(board[i]);
+            }
+        }
+        for (let c = 0; c < cols; c++) {
+            for (let r = 0; r < rows - 3; r++) {
+                let i = r * cols + c;
+                if (checkLine(i, i + cols, i + 2 * cols, i + 3 * cols)) win(board[i]);
+            }
+        }
+        for (let r = 0; r < rows - 3; r++) {
+            for (let c = 0; c < cols - 3; c++) {
+                let i = r * cols + c;
+                if (checkLine(i, i + cols + 1, i + 2 * cols + 2, i + 3 * cols + 3)) win(board[i]);
+            }
+        }
+        for (let r = 3; r < rows; r++) {
+            for (let c = 0; c < cols - 3; c++) {
+                let i = r * cols + c;
+                if (checkLine(i, i - cols + 1, i - 2 * cols + 2, i - 3 * cols + 3)) win(board[i]);
+            }
+        }
+        if (!board.includes('')) {
+            document.getElementById('message').textContent = 'Unentschieden!';
+            gameActive = false;
+        }
+    }
+
+    function win(player) {
+        document.getElementById('message').textContent = player + ' gewinnt!';
+        gameActive = false;
+    }
+
+    function resetGame() {
+        board = Array(rows * cols).fill('');
+        gameActive = true;
+        document.getElementById('message').textContent = 'Dein Zug!';
+        renderBoard();
+    }
+
+    renderBoard();
+</script>
+</body>
+</html>
